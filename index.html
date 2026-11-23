@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101827">
+<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Offline Practice Metronome</title>
+<script>try{const t=JSON.parse(localStorage.getItem('offline-metronome-practice-v3')||'{}').theme;document.documentElement.dataset.theme=['light','dark'].includes(t)?t:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}catch(e){document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}</script><style>
+:root{color-scheme:dark;--bg:#101827;--panel:#1c293b;--border:#394b64;--text:#f3f7ff;--muted:#b5c3d8;--blue:#48c9f0;--amber:#ffca64;--green:#83e4bd}*{box-sizing:border-box}
+body{margin:0;min-height:100dvh;padding:12px;background:radial-gradient(circle at top,#243956,var(--bg) 68%);color:var(--text);font:16px system-ui,-apple-system,Roboto,sans-serif;display:flex;align-items:center;justify-content:center}
+main{width:min(100%,530px);padding:17px;background:var(--panel);border:1px solid var(--border);border-radius:21px;box-shadow:0 18px 55px #0006}
+h1{text-align:center;font-size:1.22rem;margin:0}.sub{text-align:center;font-size:.72rem;color:var(--muted);margin:2px 0 9px}
+button,select{font:inherit;background:#293d58;color:var(--text);border:1px solid #526781;border-radius:11px;padding:10px 12px;touch-action:manipulation;cursor:pointer}button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-offset:3px}button:active{transform:scale(.98)}
+.top{display:flex;justify-content:center;align-items:center;gap:10px;margin:4px 0 10px}.bpm{text-align:center}.bpm input{width:110px;font-size:2.5rem;font-weight:800;text-align:center;color:var(--text);border:0;background:transparent;font-variant-numeric:tabular-nums}.bpm input::-webkit-outer-spin-button,.bpm input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.bpm small{display:block;font-size:.66rem;letter-spacing:.15em;color:var(--muted)}
+.tempo-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.tempo-controls button{padding:9px 4px}.slider{width:100%;accent-color:#78c7ff;margin:12px 0}
+.beats{display:flex;gap:7px;margin:5px 0 8px}.beat{flex:1;min-width:0;height:clamp(90px,27vw,145px);display:flex;justify-content:center;align-items:center;background:#27374b;border:2px solid #5d7391;border-radius:12px;font-size:clamp(1rem,5vw,2rem);font-weight:850;color:#ced8e6;transition:background .035s,border .035s,box-shadow .035s}.beat.first{border-color:#a98847;color:#ffdd9c}.beat.current{background:var(--blue);color:#072634;border-color:#dcfaff;box-shadow:0 0 34px #48c9f0c0,0 0 10px #48c9f0}.beat.current.first{background:var(--amber);color:#38240a;border-color:#fff2bb;box-shadow:0 0 38px #ffcb69d8,0 0 12px #ffcb69}
+.pendulum{height:95px;position:relative;margin:2px auto 0;width:130px;overflow:hidden}.pendulum .arc{position:absolute;bottom:9px;left:7px;width:116px;height:65px;border-top:1px dashed #69829f;border-radius:65px 65px 0 0;opacity:.75}.pendulum .arm{position:absolute;left:50%;bottom:10px;width:4px;height:69px;background:linear-gradient(#d4e5f4,#718cae);border-radius:5px;transform-origin:center bottom;transform:translateX(-50%) rotate(-25deg);transition:transform .5s ease-in-out}.pendulum .weight{position:absolute;top:-6px;left:-7px;width:18px;height:18px;background:#ffca64;border-radius:50%;box-shadow:0 0 11px #ffca6477}.pendulum .pivot{position:absolute;bottom:3px;left:calc(50% - 9px);width:18px;height:18px;background:#9fb2ca;border-radius:50%;border:3px solid #364c68}.pendulum.off .arm{transition:none;transform:translateX(-50%) rotate(0deg)!important}
+.legend{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.74rem;color:var(--muted);margin:7px 0 9px}.legend b{color:var(--amber)}.check{display:inline-flex;align-items:center;gap:8px;cursor:pointer}.check input{width:19px;height:19px;accent-color:#70caff}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:10px 0}.row select{width:min(58%,235px)}.row label{font-size:.92rem}.volume{display:flex;align-items:center;gap:10px}.volume input{flex:1;min-width:0;accent-color:#78c7ff}.volume output{width:3.5ch;text-align:right;font-variant-numeric:tabular-nums}
+#start{width:100%;margin-top:9px;background:var(--green);color:#092d24;border:0;font-weight:800;font-size:1.1rem;padding:15px}#start.running{background:#ffb3a9;color:#461d18}#tap{width:100%;margin:8px 0 0}
+.practice-entry{display:flex;justify-content:space-between;gap:8px;margin:12px 0 2px}.practice-entry button{flex:1}.status{min-height:1.5em;text-align:center;font-size:.75rem;color:var(--muted);margin:9px 0 0}.foot{text-align:center;font-size:.7rem;color:var(--muted);margin-top:6px}
+.practice-head,.practice-actions{display:none}
+body.practice{padding:0;display:block;background:#080e18}body.practice main{width:100%;min-height:100dvh;max-width:none;border:0;border-radius:0;box-shadow:none;padding:clamp(12px,3vw,30px);background:#0d1725;display:flex;flex-direction:column;justify-content:space-between;gap:6px}
+body.practice .normal-only{display:none!important}body.practice .practice-head{display:flex;justify-content:space-between;align-items:center;gap:10px}body.practice .practice-head .practice-bpm{font-size:clamp(1.6rem,7vw,3rem);font-weight:800}body.practice .practice-head .practice-bpm span{font-size:.7rem;color:var(--muted);font-weight:500}body.practice .beats{flex:1;min-height:130px;max-height:45dvh;margin:3px 0 0}body.practice .beat{height:auto;font-size:clamp(1.3rem,7vw,3.2rem);border-width:3px}body.practice .pendulum{flex:0 0 auto;height:clamp(120px,19dvh,215px);width:min(55vw,260px)}body.practice .pendulum .arc{width:84%;height:70%;left:8%;bottom:9px}body.practice .pendulum .arm{height:78%;width:5px}body.practice .pendulum .weight{width:24px;height:24px;left:-9px}body.practice .practice-actions{display:flex;gap:10px}body.practice .practice-actions button{flex:1;font-weight:750}body.practice .status{font-size:.8rem}
+@media(max-width:350px){main{padding:12px}.beats{gap:4px}.beat{height:85px;border-radius:8px}.row select{width:55%}.legend{font-size:.68rem}}
+
+.header{position:relative;padding:5px 44px 0}.theme-toggle{position:absolute;right:0;top:0;padding:7px 11px;font-size:1.15rem;line-height:1.2}.tempo-mark{display:block;color:var(--muted);font-size:.85rem;font-style:italic;margin-top:4px}.tempo-actions{display:flex;gap:8px;margin-top:8px}.tempo-actions button{flex:1;margin:0!important;width:auto!important}.preset-list{margin-top:8px;max-height:300px;overflow:auto;border:1px solid var(--border);border-radius:12px;padding:5px}.preset-list button{display:flex;align-items:center;justify-content:space-between;text-align:left;width:100%;margin:3px 0;gap:10px}.preset-list small{display:block;color:var(--muted);font-size:.75rem}.preset-list strong{font-variant-numeric:tabular-nums}.practice-head .theme-toggle{position:static}.practice-head-controls{display:flex;align-items:center;gap:6px}.practice-head-controls button{white-space:nowrap}
+:root[data-theme="light"]{color-scheme:light;--bg:#e9edf2;--panel:#fff;--border:#cad3df;--text:#172438;--muted:#526176;--green:#83e4bd}
+:root[data-theme="light"] body{background:radial-gradient(circle at top,#fff,var(--bg) 68%)}:root[data-theme="light"] main{box-shadow:0 12px 38px #25334a20}:root[data-theme="light"] button,:root[data-theme="light"] select{background:#f0f4f8;border-color:#b8c6d7}:root[data-theme="light"] .beat{background:#e5eaf1;border-color:#a5b4c7;color:#46566d}:root[data-theme="light"] .beat.first{border-color:#bb8a30;color:#815600}:root[data-theme="light"] .beat.current{background:#48c9f0;color:#072634;border-color:#1285aa;box-shadow:0 0 30px #48c9f099}:root[data-theme="light"] .beat.current.first{background:#ffca64;color:#38240a;border-color:#b87c10;box-shadow:0 0 34px #ffca6499}:root[data-theme="light"] .legend b{color:#895900}:root[data-theme="light"] .pendulum .arm{background:linear-gradient(#536b87,#a4b4c6)}:root[data-theme="light"] .pendulum .pivot{background:#7b90aa;border-color:#4b607c}:root[data-theme="light"] body.practice,:root[data-theme="light"] body.practice main{background:#f7f9fc}:root[data-theme="light"] #start,:root[data-theme="light"] #practiceStart{background:var(--green);color:#092d24}:root[data-theme="light"] #start.running,:root[data-theme="light"] #practiceStart.running{background:#ffb3a9;color:#461d18}
+.theme-toggle{font-size:.85rem;white-space:nowrap}.header{padding-left:72px;padding-right:72px}#installApp{width:100%;margin-top:8px}#installHelp{font-size:.8rem;color:var(--muted);line-height:1.5;margin:8px 0}#installHelp[hidden],#installApp[hidden]{display:none}
+</style>
+</head>
+<body>
+<main>
+<div class="normal-only header"><h1>Metronome</h1><p class="sub">Offline · Practice edition</p><button class="theme-toggle" id="themeToggle" aria-label="Change theme">System</button></div>
+<div class="practice-head"><div class="practice-bpm"><span id="practiceBpm">100</span> <span>BPM</span></div><div class="practice-head-controls"><button class="theme-toggle" id="practiceTheme" aria-label="Change theme">System</button><button id="exitPractice">✕ Exit practice</button></div></div>
+<div class="normal-only">
+<div class="top"><div class="bpm"><input type="number" id="bpm" min="30" max="300" inputmode="numeric" value="100" aria-label="Beats per minute"><small>BEATS PER MINUTE</small><span id="tempoMark" class="tempo-mark"></span></div></div>
+<div class="tempo-controls"><button id="minus5">− 5</button><button id="minus">− 1</button><button id="plus">+ 1</button><button id="plus5">+ 5</button></div>
+<input class="slider" type="range" id="bpmSlider" min="30" max="300" value="100" aria-label="Adjust tempo">
+</div>
+<div id="beats" class="beats" aria-label="Flashing beats"></div>
+<div class="pendulum" id="pendulum" aria-label="Swinging pendulum"><div class="arc"></div><div id="arm" class="arm"><div class="weight"></div></div><div class="pivot"></div></div>
+<div class="normal-only">
+<div class="legend"><span><b>Amber</b> = beat 1 · Blue = other beats</span><label class="check"><input id="flash" type="checkbox" checked>Flash</label></div>
+<div class="row"><label for="mode">Output</label><select id="mode"><option value="sound">Ticking sound</option><option value="vibrate">Vibration only</option><option value="both">Sound + vibration</option></select></div>
+<div class="row"><label for="meter">Beats per bar</label><select id="meter"><option value="1">1 (no accent)</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select></div>
+<div class="row"><label for="subdivision">Subdivisions</label><select id="subdivision"><option value="1">Quarter notes (1)</option><option value="2">Eighth notes (2)</option><option value="3">Triplets (3)</option><option value="4">Sixteenth notes (4)</option></select></div>
+<div class="row"><label class="check"><input id="accent" type="checkbox" checked>Accent first beat</label></div>
+<div class="row volume"><label for="volume">Volume</label><input type="range" id="volume" min="0" max="100" value="65"><output id="volumeValue">65%</output></div>
+<button id="start">▶ Start</button><div class="tempo-actions"><button id="tap">Tap tempo</button><button id="presetToggle" aria-expanded="false" aria-controls="presetList">Tempo presets ▾</button></div><div id="presetList" class="preset-list" hidden></div>
+<button id="installApp" hidden>Install app</button><p id="installHelp" hidden></p><div class="practice-entry"><button id="enterPractice">⛶ Full-screen practice mode</button></div>
+</div>
+<div class="practice-actions"><button id="practiceStart">▶ Start</button><button id="practiceTap">Tap tempo</button></div>
+<p id="status" class="status" role="status" aria-live="polite">Ready · settings saved on this device when supported</p>
+<div class="foot normal-only">Keep the screen on while playing. Do Not Disturb may block vibration.</div>
+</main>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const bpm=$('bpm'),slider=$('bpmSlider'),meter=$('meter'),mode=$('mode'),subdivision=$('subdivision'),accent=$('accent'),flash=$('flash'),volume=$('volume'),beats=$('beats'),arm=$('arm'),pendulum=$('pendulum'),status=$('status');
+const KEY='offline-metronome-practice-v3';
+const presets=[['Largo','Very slow',50,'40–60'],['Lento','Slow',54,'45–60'],['Adagio','Slow and relaxed',66,'55–76'],['Andante','Walking pace',92,'76–108'],['Moderato','Moderate',112,'108–120'],['Allegretto','Moderately fast',116,'112–120'],['Allegro','Fast and lively',138,'120–156'],['Vivace','Lively and fast',168,'156–176'],['Presto','Very fast',184,'168–200'],['Prestissimo','Extremely fast',208,'200+']];
+const systemTheme=matchMedia('(prefers-color-scheme: dark)');
+let theme='system';
+function applyTheme(value){theme=['light','dark','system'].includes(value)?value:'system';const effective=theme==='system'?(systemTheme.matches?'dark':'light'):theme;document.documentElement.dataset.theme=effective;document.querySelector('meta[name="theme-color"]').content=effective==='light'?'#f7f9fc':'#101827';for(const id of ['themeToggle','practiceTheme']){const el=$(id);el.textContent=theme==='system'?'◐ System':theme==='light'?'☀ Light':'☾ Dark';el.setAttribute('aria-label','Theme: '+theme+'. Tap to change.');el.title='Cycle System, Light, Dark'}}
+const onSystemChange=()=>{if(theme==='system')applyTheme('system')};if(systemTheme.addEventListener)systemTheme.addEventListener('change',onSystemChange);else systemTheme.addListener(onSystemChange);
+function updateMark(){const n=tempo();$('tempoMark').textContent=(n<40?'Grave':presets.reduce((a,b)=>Math.abs(b[2]-n)<Math.abs(a[2]-n)?b:a)[0])}
+function openPresets(open){$('presetList').hidden=!open;$('presetToggle').setAttribute('aria-expanded',String(open));$('presetToggle').textContent='Tempo presets '+(open?'▴':'▾')}
+for(const [name,meaning,value,range] of presets){const button=document.createElement('button');button.type='button';const info=document.createElement('span');info.textContent=name;const detail=document.createElement('small');detail.textContent=meaning+' · '+range+' BPM';info.append(detail);const num=document.createElement('strong');num.textContent=value;button.append(info,num);button.onclick=()=>{setTempo(value);openPresets(false)};$('presetList').append(button)}
+$('presetToggle').onclick=()=>openPresets($('presetList').hidden);
+for(const id of ['themeToggle','practiceTheme'])$(id).onclick=()=>{applyTheme(({system:'light',light:'dark',dark:'system'})[theme]);save()};
+let audio=null,running=false,interval=null,nextTime=0,beat=0,sub=0,run=0,pendulumSide=-1,flashTimer=null,tapTimes=[],pending=[];
+const clamp=x=>Math.min(300,Math.max(30,Math.round(Number(x)||100)));
+const tempo=()=>clamp(bpm.value);
+function save(){try{localStorage.setItem(KEY,JSON.stringify({bpm:tempo(),meter:meter.value,mode:mode.value,subdivision:subdivision.value,accent:accent.checked,flash:flash.checked,volume:volume.value,theme}))}catch(e){}}
+function load(){applyTheme('system');try{const x=JSON.parse(localStorage.getItem(KEY)||'{}');applyTheme(x.theme);for(const id of ['meter','mode','subdivision']){if(x[id]!==undefined&&[...$(id).options].some(o=>o.value===String(x[id])))$(id).value=x[id]}if(x.bpm!==undefined)bpm.value=clamp(x.bpm);if(x.volume!==undefined)volume.value=Math.max(0,Math.min(100,Number(x.volume)||0));for(const id of ['accent','flash'])if(typeof x[id]==='boolean')$(id).checked=x[id]}catch(e){}slider.value=bpm.value;$('practiceBpm').textContent=tempo();$('volumeValue').textContent=volume.value+'%';updateMark()}
+function draw(){beats.replaceChildren();for(let i=0;i<Number(meter.value);i++){const el=document.createElement('div');el.className='beat'+(i===0?' first':'');el.textContent=String(i+1);beats.appendChild(el)}}
+function clearVisual(){clearTimeout(flashTimer);for(const el of beats.children)el.classList.remove('current')}
+function showBeat(i){clearVisual();if(flash.checked){const el=beats.children[i];if(el)el.classList.add('current');flashTimer=setTimeout(clearVisual,Math.min(220,60000/tempo()*.43))}pendulumSide*=-1;arm.style.transitionDuration=(60/tempo()*.92)+'s';arm.style.transform='translateX(-50%) rotate('+(pendulumSide*29)+'deg)'}
+function soundAt(time,kind){if(!audio||Number(volume.value)===0)return;const osc=audio.createOscillator(),gain=audio.createGain();osc.type='sine';const hz=kind===2?1450:kind===1?960:700;osc.frequency.setValueAtTime(hz,time);osc.frequency.exponentialRampToValueAtTime(hz*.6,time+.04);const level=Number(volume.value)/100*(kind===2?.44:kind===1?.32:.20);gain.gain.setValueAtTime(.0001,time);gain.gain.exponentialRampToValueAtTime(Math.max(.0002,level),time+.003);gain.gain.exponentialRampToValueAtTime(.0001,time+.055);osc.connect(gain);gain.connect(audio.destination);osc.start(time);osc.stop(time+.065)}
+function schedule(t,i,j,id){const first=(i===0&&accent.checked&&Number(meter.value)>1);if(mode.value!=='vibrate')soundAt(t,j===0?(first?2:1):0);const delay=Math.max(0,(t-audio.currentTime)*1000);
+if(j===0)pending.push(setTimeout(()=>{if(running&&run===id)showBeat(i)},delay));
+if(mode.value!=='sound'&&navigator.vibrate&&j===0)pending.push(setTimeout(()=>{if(running&&run===id)navigator.vibrate(first?90:55)},delay));}
+function scheduler(){if(!audio||!running)return;const id=run,n=Number(subdivision.value),dur=60/tempo()/n;while(running&&nextTime<audio.currentTime+.13){schedule(nextTime,beat,sub,id);nextTime+=dur;sub++;if(sub>=n){sub=0;beat=(beat+1)%Number(meter.value)}}}
+function setStatus(){status.textContent=running?'Playing · '+tempo()+' BPM':'Stopped'}
+function updateButtons(){$('start').textContent=$('practiceStart').textContent=running?'■ Stop':'▶ Start';$('start').classList.toggle('running',running);$('practiceStart').classList.toggle('running',running)}
+async function begin(){if(running)return;try{if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();await audio.resume()}catch(e){status.textContent='Audio timing unavailable in this browser';return}running=true;run++;beat=0;sub=0;pendulumSide=-1;nextTime=audio.currentTime+.08;pendulum.classList.remove('off');arm.style.transition='none';arm.style.transform='translateX(-50%) rotate(-29deg)';void arm.offsetWidth;arm.style.transition='transform .5s ease-in-out';draw();updateButtons();scheduler();interval=setInterval(scheduler,25);setStatus();if(mode.value!=='sound'&&!navigator.vibrate)status.textContent='Vibration unavailable in this browser'}
+function stop(){running=false;run++;clearInterval(interval);interval=null;for(const id of pending)clearTimeout(id);pending=[];clearVisual();navigator.vibrate?.(0);pendulum.classList.add('off');arm.style.transform='translateX(-50%) rotate(0deg)';updateButtons();setStatus()}
+function restart(){if(running){stop();begin()}}
+function setTempo(value){bpm.value=clamp(value);slider.value=bpm.value;$('practiceBpm').textContent=tempo();updateMark();save();restart()}
+function tap(){const now=performance.now();if(tapTimes.length&&now-tapTimes.at(-1)>2200)tapTimes=[];tapTimes.push(now);if(tapTimes.length>6)tapTimes.shift();if(tapTimes.length>1){const diffs=tapTimes.slice(1).map((x,i)=>x-tapTimes[i]);setTempo(60000/(diffs.reduce((a,b)=>a+b,0)/diffs.length));status.textContent='Tap tempo: '+tempo()+' BPM'}else status.textContent='Tap again to set tempo'}
+$('minus').onclick=()=>setTempo(tempo()-1);$('plus').onclick=()=>setTempo(tempo()+1);$('minus5').onclick=()=>setTempo(tempo()-5);$('plus5').onclick=()=>setTempo(tempo()+5);
+slider.oninput=()=>setTempo(slider.value);bpm.onchange=()=>setTempo(bpm.value);bpm.onkeydown=e=>{if(e.key==='Enter'){bpm.blur();setTempo(bpm.value)}};
+for(const id of ['meter','mode','subdivision','accent'])$(id).onchange=()=>{save();draw();restart()};
+flash.onchange=()=>{save();if(!flash.checked)clearVisual()};
+volume.oninput=()=>{$('volumeValue').textContent=volume.value+'%';save()};
+$('start').onclick=$('practiceStart').onclick=()=>running?stop():begin();$('tap').onclick=$('practiceTap').onclick=tap;
+async function enterPractice(){document.body.classList.add('practice');try{if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen()}catch(e){/* still show practice layout */}}
+async function exitPractice(){document.body.classList.remove('practice');try{if(document.fullscreenElement&&document.exitFullscreen)await document.exitFullscreen()}catch(e){}}
+$('enterPractice').onclick=enterPractice;$('exitPractice').onclick=exitPractice;
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&document.body.classList.contains('practice')){ /* leave practice layout available even if fullscreen exits */ }});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&running)status.textContent='Keep the screen on: background operation may pause'});
+load();draw();pendulum.classList.add('off');
+let installPrompt=null;const installButton=$('installApp'),installHelp=$('installHelp');const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+function updateInstall(){installButton.hidden=standalone()||!['https:','http:'].includes(location.protocol)}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;updateInstall()});
+window.addEventListener('appinstalled',()=>{installPrompt=null;installButton.hidden=true;installHelp.hidden=true});
+installButton.onclick=async()=>{if(installPrompt){const prompt=installPrompt;installPrompt=null;try{await prompt.prompt();await prompt.userChoice}catch(e){}updateInstall();return}installHelp.textContent=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)?'In Safari, tap Share → Add to Home Screen. Enable Open as Web App if shown.':'Open your browser menu and choose Install app or Add to Home screen, if available.';installHelp.hidden=!installHelp.hidden};updateInstall();
+if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1'))navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('Offline setup failed',e));
+
+})();
+</script>
+</body>
+</html>
